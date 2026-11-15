@@ -12,7 +12,7 @@ jobs:
           fetch-depth: 0
       - name: Unzip newest project zip
         run: |
-          f=$(git log --format= --name-only -- '*.zip' | head -n 1)
+          f=$(git log --format= --name-only --diff-filter=AM -- '*.zip' | while IFS= read -r x; do if [ -f "$x" ]; then echo "$x"; break; fi; done)
           echo "Using: $f"
           unzip -q -o "$f"
       - uses: actions/setup-java@v4
