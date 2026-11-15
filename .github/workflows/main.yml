@@ -8,8 +8,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Unzip project
-        run: unzip -q FloatingFileAssistant (2).zip
+        with:
+          fetch-depth: 0
+      - name: Unzip newest project zip
+        run: |
+          f=$(git log --format= --name-only -- '*.zip' | head -n 1)
+          echo "Using: $f"
+          unzip -q -o "$f"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
