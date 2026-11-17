@@ -1,33 +1,42 @@
-name: Build debug APK
+name: Build APK
+
 on:
-  workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Unzip newest project zip
-        run: |
-          f=$(git log --format= --name-only --diff-filter=AM -- '*.zip' | while IFS= read -r x; do if [ -f "$x" ]; then echo "$x"; break; fi; done)
-          echo "Using: $f"
-          unzip -q -o "$f"
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
-      - name: Accept Android licenses
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+
+      - uses: android-actions/setup-android@v3
+
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: 8.7
-      - name: Build
-        working-directory: FloatingFileAssistant
-        run: gradle assembleDebug --no-daemon
-      - uses: actions/upload-artifact@v4
+          gradle-version: "8.9"
+
+      # البناء أولاً: يخرج الـ APK حتى لو فشل أي اختبار لاحقاً
+      - name: Build debug APK
+        run: gradle --no-daemon --stacktrace :app:assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
-          name: app-debug-apk
-          path: FloatingFileAssistant/app/build/outputs/apk/debug/app-debug.apk
+          name: AlightMotionMasterAI-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+
+      - name: Validate knowledge base
+        continue-on-error: true
+        run: python3 tools/validate_kb.py
+
+      - name: Unit tests
+        continue-on-error: true
+        run: gradle --no-daemon test
