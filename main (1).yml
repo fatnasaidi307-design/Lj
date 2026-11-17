@@ -17,7 +17,7 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      # Android SDK مثبّت مسبقاً على أجهزة GitHub، لا حاجة لخطوة تثبيت
+      # Android SDK مثبّت مسبقاً على أجهزة GitHub، لا حاجة لخطوة تثبي
 
       - uses: gradle/actions/setup-gradle@v4
         with:
