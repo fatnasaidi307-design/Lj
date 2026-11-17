@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -26,9 +26,19 @@ jobs:
         with:
           gradle-version: "8.9"
 
-      - name: Build debug APK
+      # إعادة المحاولة تلقائياً عند أخطاء الشبكة (مثل 429 من Maven Central)
+      - name: Build debug APK (with retry)
         working-directory: AlightMotionMasterAI
-        run: gradle --no-daemon --stacktrace :app:assembleDebug
+        run: |
+          for i in 1 2 3; do
+            echo "=== Attempt $i ==="
+            if gradle --no-daemon --stacktrace :app:assembleDebug; then
+              exit 0
+            fi
+            echo "Build failed, waiting before retry..."
+            sleep $((i * 60))
+          done
+          exit 1
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
