@@ -45,4 +45,3 @@ jobs:
         continue-on-error: true
         working-directory: AlightMotionMasterAI
         run: gradle --no-daemon test
-        
